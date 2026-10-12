@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay e-Services & Management Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        phGreen: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        phNavy: '#0f172a',
+                        phGold: '#eab308',
+                        phGoldDark: '#ca8a04',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serifHeader: ['Cinzel', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .certificate-border {
+            border: 12px double #15803d;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printableCertificate, #printableCertificate * {
+                visibility: visible;
+            }
+            #printableCertificate {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- HEADER & NAVBAR -->
+    <header class="bg-phNavy text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Barangay Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('resident')">
+                    <div class="w-12 h-12 rounded-full bg-phGreen-700 border-2 border-phGold flex items-center justify-center text-phGold font-bold text-xl shadow-inner">
+                        <i class="fa-solid font-bold fa-shield-halved text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-phGold">Republic of the Philippines</span>
+                        </div>
+                        <h1 class="text-lg sm:text-xl font-bold font-serifHeader tracking-wide text-white">BARANGAY SAN JOSE</h1>
+                        <p class="text-xs text-slate-300">City of Manila, Metro Manila</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav Links -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <button onclick="switchView('resident')" id="nav-resident" class="nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-phGold border-b-2 border-phGold">
+                        <i class="fa-solid fa-house mr-1"></i> Resident Portal
+                    </button>
+                    <button onclick="switchView('admin')" id="nav-admin" class="nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-slate-300">
+                        <i class="fa-solid fa-user-shield mr-1"></i> Admin Dashboard
+                    </button>
+                </div>
+
+                <!-- Role Switcher & Mobile Menu Toggle -->
+                <div class="flex items-center space-x-3">
+                    <!-- Current Active Role Indicator -->
+                    <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="roleBadge" class="text-xs font-semibold text-emerald-400">Resident View</span>
+                    </div>
+
+                    <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="md:hidden text-slate-300 hover:text-white p-2 text-xl">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-t border-slate-800 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchView('resident'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-white hover:bg-slate-800 flex items-center">
+                <i class="fa-solid fa-house w-6 text-phGold"></i> Resident Portal
+            </button>
+            <button onclick="switchView('admin'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-white hover:bg-slate-800 flex items-center">
+                <i class="fa-solid fa-user-shield w-6 text-phGold"></i> Admin Dashboard
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ============================================================== -->
+        <!-- RESIDENT PORTAL VIEW -->
+        <!-- ============================================================== -->
+        <div id="residentView" class="space-y-8">
+            
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-phGreen-900 via-phGreen-800 to-phNavy rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-white pointer-events-none">
+                    <i class="fa-solid fa-building-columns text-[220px]"></i>
+                </div>
+                <div class="max-w-2xl relative z-10 space-y-3">
+                    <span class="inline-block bg-phGold text-slate-900 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">Fast & Convenient</span>
+                    <h2 class="text-2xl sm:text-4xl font-bold font-serifHeader leading-tight">Barangay San Jose E-Services</h2>
+                    <p class="text-slate-200 text-sm sm:text-base">Request official barangay certificates, clearances, and track your request status online without waiting in long physical queues.</p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="scrollToSection('requestFormSection')" class="bg-phGold hover:bg-phGoldDark text-slate-900 font-bold px-5 py-2.5 rounded-lg text-sm shadow-md transition flex items-center">
+                            <i class="fa-solid fa-file-signature mr-2"></i> Request Certificate
+                        </button>
+                        <button onclick="scrollToSection('trackSection')" class="bg-white/10 hover:bg-white/20 text-white font-medium px-5 py-2.5 rounded-lg text-sm backdrop-blur-sm transition border border-white/20 flex items-center">
+                            <i class="fa-solid fa-magnifying-glass mr-2"></i> Track Requests
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Request & Tracking Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Request Form -->
+                <div id="requestFormSection" class="lg:col-span-2 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900 flex items-center">
+                                <i class="fa-solid fa-file-lines text-phGreen-700 mr-2"></i> Online Document Request
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Fill out the details carefully. Uploaded IDs are processed securely.</p>
+                        </div>
+                        <span class="hidden sm:block text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded">24/7 Processing</span>
+                    </div>
+
+                    <form id="docRequestForm" onsubmit="handleDocRequestSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Document Type *</label>
+                                <select id="reqDocType" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                                    <option value="" disabled selected>Select Document...</option>
+                                    <option value="Barangay Clearance">Barangay Clearance</option>
+                                    <option value="Certificate of Indigency">Certificate of Indigency</option>
+                                    <option value="Certificate of Residency">Certificate of Residency</option>
+                                    <option value="Barangay Business Clearance">Barangay Business Clearance</option>
+                                    <option value="First Time Job Seeker Certificate">First Time Job Seeker Certificate</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+                                <input type="text" id="reqFullName" placeholder="e.g. Juan De La Cruz" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Contact Number *</label>
+                                <input type="tel" id="reqContact" placeholder="e.g. 0917 123 4567" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Date Needed *</label>
+                                <input type="date" id="reqDateNeeded" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Complete Address / Purok *</label>
+                            <input type="text" id="reqAddress" placeholder="House No., Street, Purok 1-6, Barangay San Jose" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Purpose of Request *</label>
+                            <textarea id="reqPurpose" rows="2" placeholder="e.g. Employment Application, Scholarship, Bank Account Opening" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-phGreen-600 focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Valid Government ID (Simulation Upload)</label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                                <input type="file" id="reqIdUpload" accept="image/*,.pdf" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-1"></i>
+                                <p id="fileNameDisplay" class="text-xs text-slate-600">Click or drag photo of Driver's License, UMID, Passport, etc.</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="w-full bg-phGreen-700 hover:bg-phGreen-800 text-white font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Submit Request</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Column: Emergency & Announcements -->
+                <div class="space-y-6">
+                    <!-- Emergency Directory -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center text-red-600">
+                            <i class="fa-solid fa-phone-volume mr-2 animate-bounce"></i> Emergency Directory
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-2.5 bg-red-50 rounded-lg border border-red-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-xs">
+                                        <i class="fa-solid fa-building-shield"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-900">Barangay Desk Hotline</p>
+                                        <p class="text-xs text-slate-600">(02) 8123-4567</p>
+                                    </div>
+                                </div>
+                                <a href="tel:0281234567" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded font-medium hover:bg-red-700">Call</a>
+                            </div>
+
+                            <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                                        <i class="fa-solid fa-user-nurse"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-900">Barangay Health Center</p>
+                                        <p class="text-xs text-slate-600">0917-888-9999</p>
+                                    </div>
+                                </div>
+                                <a href="tel:09178889999" class="text-xs bg-slate-700 text-white px-2.5 py-1 rounded font-medium hover:bg-slate-800">Call</a>
+                            </div>
+
+                            <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
+                                        <i class="fa-solid fa-fire-extinguisher"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-900">BFP Fire Station</p>
+                                        <p class="text-xs text-slate-600">911 / (02) 8521-2222</p>
+                                    </div>
+                                </div>
+                                <a href="tel:911" class="text-xs bg-slate-700 text-white px-2.5 py-1 rounded font-medium hover:bg-slate-800">Call</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Announcements Board -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center">
+                            <i class="fa-solid fa-bullhorn text-phGoldDark mr-2"></i> Official Bulletin
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="border-l-4 border-phGreen-600 pl-3 py-1">
+                                <span class="text-[10px] uppercase font-bold text-phGreen-700 bg-phGreen-50 px-1.5 py-0.5 rounded">Health Advisory</span>
+                                <h4 class="text-xs font-bold text-slate-800 mt-1">Free Medical & Dental Mission</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Saturday, 8:00 AM at Covered Court. Free checkup and medicines.</p>
+                            </div>
+                            <div class="border-l-4 border-phGold dark:border-amber-500 pl-3 py-1">
+                                <span class="text-[10px] uppercase font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded">Community</span>
+                                <h4 class="text-xs font-bold text-slate-800 mt-1">Senior Citizen Pension Distribution</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Quarterly pension payout at the Session Hall this coming Friday.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Track Request Table Section -->
+            <div id="trackSection" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-2">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 flex items-center">
+                            <i class="fa-solid fa-clock-rotate-left text-phGreen-700 mr-2"></i> Document Request Status & Certificates
+                        </h3>
+                        <p class="text-xs text-slate-500">Track status and download printable official certificates once Approved or Ready.</p>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Auto-updates in real-time
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-y border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                <th class="py-3 px-4">Tracking ID</th>
+                                <th class="py-3 px-4">Applicant</th>
+                                <th class="py-3 px-4">Document Type</th>
+                                <th class="py-3 px-4">Date Requested</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="residentRequestTable" class="divide-y divide-slate-100 text-sm">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- ADMIN DASHBOARD VIEW -->
+        <!-- ============================================================== -->
+        <div id="adminView" class="hidden space-y-8">
+            
+            <!-- Dashboard Stats Summary Header -->
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Total Population</p>
+                        <h3 id="statTotalPop" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Households</p>
+                        <h3 id="statTotalHouseholds" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-house-chimney"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Senior Citizens</p>
+                        <h3 id="statSeniors" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-person-cane"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Reg. Voters</p>
+                        <h3 id="statVoters" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-check-to-slot"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between col-span-2 sm:col-span-1">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Active Requests</p>
+                        <h3 id="statActiveRequests" class="text-2xl font-black text-phGoldDark mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Sub-Navigation Tabs -->
+            <div class="flex border-b border-slate-200 space-x-6 text-sm font-semibold">
+                <button onclick="switchAdminTab('census')" id="tab-census" class="pb-3 border-b-2 border-phGreen-700 text-phGreen-700 flex items-center space-x-2">
+                    <i class="fa-solid fa-id-card"></i> <span>Census & Household Records</span>
+                </button>
+                <button onclick="switchAdminTab('requests')" id="tab-requests" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-inbox"></i> <span>Pending Document Requests</span>
+                </button>
+                <button onclick="switchAdminTab('analytics')" id="tab-analytics" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Demographic Analytics</span>
+                </button>
+            </div>
+
+            <!-- ADMIN TAB 1: CENSUS MANAGEMENT -->
+            <div id="adminTabCensus" class="space-y-6">
+                
+                <!-- Registration Modal Toggle Button / Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="flex flex-wrap items-center gap-3 flex-1">
+                        <!-- Search Box -->
+                        <div class="relative flex-1 min-w-[200px]">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="censusSearchInput" oninput="filterCensusData()" placeholder="Search resident name or address..." class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-phGreen-600">
+                        </div>
+
+                        <!-- Purok Filter -->
+                        <select id="purokFilter" onchange="filterCensusData()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-phGreen-600">
+                            <option value="ALL">All Puroks / Zones</option>
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                            <option value="Purok 4">Purok 4</option>
+                            <option value="Purok 5">Purok 5</option>
+                        </select>
+
+                        <!-- Special Status Filter -->
+                        <select id="statusFilter" onchange="filterCensusData()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-phGreen-600">
+                            <option value="ALL">All Classifications</option>
+                            <option value="Senior">Senior Citizens</option>
+                            <option value="PWD">PWDs</option>
+                            <option value="Voter">Registered Voters</option>
+                        </select>
+                    </div>
+
+                    <button onclick="openCensusModal()" class="bg-phGreen-700 hover:bg-phGreen-800 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2 whitespace-nowrap">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Add New Resident</span>
+                    </button>
+                </div>
+
+                <!-- Census Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                    <th class="py-3 px-4">Resident Name</th>
+                                    <th class="py-3 px-4">Age / Gender</th>
+                                    <th class="py-3 px-4">Purok / Address</th>
+                                    <th class="py-3 px-4">Civil Status / Occupation</th>
+                                    <th class="py-3 px-4">Tags</th>
+                                    <th class="py-3 px-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="censusTableBody" class="divide-y divide-slate-100 text-xs">
+                                <!-- Dynamic Census Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 2: DOCUMENT REQUEST MANAGEMENT -->
+            <div id="adminTabRequests" class="hidden space-y-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
+                        Manage Resident Document Applications
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-y border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                    <th class="py-3 px-4">Ref Code</th>
+                                    <th class="py-3 px-4">Resident Name</th>
+                                    <th class="py-3 px-4">Document Type</th>
+                                    <th class="py-3 px-4">Date / Contact</th>
+                                    <th class="py-3 px-4">Current Status</th>
+                                    <th class="py-3 px-4 text-center">Manage Status & Print</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminRequestTable" class="divide-y divide-slate-100 text-xs">
+                                <!-- Dynamic Requests List -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 3: DEMOGRAPHIC ANALYTICS -->
+            <div id="adminTabAnalytics" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Age Distribution Chart -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center">
+                            <i class="fa-solid fa-chart-column text-phGreen-700 mr-2"></i> Age Group Distribution
+                        </h4>
+                        <div class="h-64 relative">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gender & Civil Status Chart -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center">
+                            <i class="fa-solid fa-chart-pie text-phGreen-700 mr-2"></i> Gender Breakdown
+                        </h4>
+                        <div class="h-64 relative flex justify-center">
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Purok Distribution Progress -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 md:col-span-2">
+                        <h4 class="text-sm font-bold text-slate-800 mb-4">Household Concentration per Purok</h4>
+                        <div id="purokProgressContainer" class="space-y-4">
+                            <!-- Progress Bars generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CENSUS FORM MODAL -->
+    <div id="censusModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
+            <div class="bg-phNavy px-6 py-4 flex items-center justify-between text-white">
+                <h3 id="modalTitle" class="font-bold text-lg font-serifHeader">Add Resident Census Record</h3>
+                <button onclick="closeCensusModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="censusForm" onsubmit="saveCensusRecord(event)" class="p-6 space-y-4">
+                <input type="hidden" id="censusId">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+                        <input type="text" id="cenFullName" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Purok / Zone *</label>
+                        <select id="cenPurok" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                            <option value="Purok 4">Purok 4</option>
+                            <option value="Purok 5">Purok 5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Age *</label>
+                        <input type="number" id="cenAge" min="0" max="120" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Gender *</label>
+                        <select id="cenGender" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Civil Status</label>
+                        <select id="cenCivilStatus" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Separated">Separated</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Occupation</label>
+                        <input type="text" id="cenOccupation" placeholder="e.g. Employee, Vendor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Detailed Street Address</label>
+                        <input type="text" id="cenAddress" placeholder="House #, Street name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-phGreen-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 pt-3">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Resident Tags / Special Status</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="cenIsHead" class="rounded text-phGreen-700 focus:ring-phGreen-600">
+                            <span>Household Head</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="cenIsVoter" class="rounded text-phGreen-700 focus:ring-phGreen-600">
+                            <span>Registered Voter</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="cenIsPwd" class="rounded text-phGreen-700 focus:ring-phGreen-600">
+                            <span>Person With Disability (PWD)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="cenIsSenior" class="rounded text-phGreen-700 focus:ring-phGreen-600">
+                            <span>Senior Citizen</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeCensusModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-phGreen-700 text-white text-xs font-bold rounded-lg hover:bg-phGreen-800 shadow">Save Resident Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRINTABLE OFFICIAL CERTIFICATE MODAL -->
+    <div id="printCertificateModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden relative my-8">
+            <!-- Modal Header Toolbar (Hidden during print) -->
+            <div class="no-print bg-slate-900 px-6 py-3 flex items-center justify-between text-white">
+                <span class="text-sm font-semibold"><i class="fa-solid fa-print mr-2"></i> Official Document Preview & Print</span>
+                <div class="flex items-center space-x-3">
+                    <button onclick="window.print()" class="bg-phGreen-600 hover:bg-phGreen-700 text-white text-xs font-bold px-4 py-1.5 rounded flex items-center space-x-1 shadow">
+                        <i class="fa-solid fa-print"></i> <span>Print Document</span>
+                    </button>
+                    <button onclick="closePrintModal()" class="text-slate-400 hover:text-white text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PRINTABLE CERTIFICATE PAPER CONTENT -->
+            <div id="printableCertificate" class="p-8 sm:p-12 bg-white text-slate-900 certificate-border relative m-4">
+                
+                <!-- Watermark -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <i class="fa-solid fa-shield-halved text-[300px] text-phGreen-900"></i>
+                </div>
+
+                <!-- Header Seals -->
+                <div class="text-center space-y-1 border-b-2 border-phGreen-800 pb-4 mb-6">
+                    <p class="text-xs uppercase font-serifHeader tracking-widest text-slate-600">Republic of the Philippines</p>
+                    <p class="text-xs uppercase font-serifHeader font-semibold">City of Manila • District IV</p>
+                    <h2 class="text-xl sm:text-2xl font-bold font-serifHeader text-phGreen-900 tracking-wide">BARANGAY SAN JOSE</h2>
+                    <p class="text-[11px] text-slate-500 font-sans">Office of the Barangay Captain & Sangguniang Barangay</p>
+                </div>
+
+                <!-- Document Title -->
+                <div class="text-center my-8">
+                    <h3 id="certDocTitle" class="text-2xl sm:text-3xl font-black font-serifHeader uppercase tracking-widest text-phGreen-900 border-b-2 border-phGold inline-block pb-1">
+                        BARANGAY CLEARANCE
+                    </h3>
+                </div>
+
+                <!-- Body Content -->
+                <div class="space-y-6 text-sm leading-relaxed text-justify px-2 sm:px-6">
+                    <p class="font-semibold">TO WHOM IT MAY CONCERN:</p>
+                    
+                    <p class="indent-8">
+                        This is to certify that <span id="certApplicantName" class="font-bold underline text-slate-900 uppercase">JUAN DE LA CRUZ</span>, 
+                        of legal age, Filipino citizen, and a bonafide resident of 
+                        <span id="certAddress" class="font-bold underline">Purok 3, Barangay San Jose, Manila</span>, 
+                        has no derogatory record on file in this office as of this date.
+                    </p>
+
+                    <p class="indent-8">
+                        This certification is being issued upon the request of the above-named person for the purpose of: 
+                        <span id="certPurpose" class="font-bold underline text-slate-900">EMPLOYMENT REQUIREMENT</span>.
+                    </p>
+
+                    <p class="indent-8">
+                        Issued this <span id="certIssuedDate" class="font-bold">12th day of October, 2026</span> at Barangay San Jose Hall, City of Manila, Philippines.
+                    </p>
+                </div>
+
+                <!-- Signatures Section -->
+                <div class="mt-16 pt-8 grid grid-cols-2 gap-8 items-end text-center">
+                    <div>
+                        <div class="border-b border-slate-400 w-3/4 mx-auto pb-1">
+                            <p id="certRefNo" class="font-mono text-xs font-bold text-slate-600">REF: BSJ-2026-000</p>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Official Control Number</p>
+                    </div>
+
+                    <div>
+                        <div class="border-b-2 border-slate-800 w-4/5 mx-auto pb-1">
+                            <p class="font-bold uppercase text-sm font-serifHeader">HON. ROBERTO V. SANTOS</p>
+                        </div>
+                        <p class="text-xs font-bold text-phGreen-800 mt-0.5">Punong Barangay</p>
+                        <p class="text-[10px] text-slate-500">Barangay Captain</p>
+                    </div>
+                </div>
+
+                <!-- Footer Seal Notice -->
+                <div class="mt-12 text-center text-[10px] text-slate-400 border-t border-slate-200 pt-3">
+                    <p>Not Valid Without Official Barangay Dry Seal • Barangay San Jose e-Services Portal Generated</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================
+        // INITIAL MOCK DATA STORAGE INITIALIZATION
+        // ==========================================
+        const initialCensus = [
+            { id: '1', fullName: 'Juan De La Cruz', age: 34, gender: 'Male', purok: 'Purok 1', address: '123 Sampaguita St.', civilStatus: 'Married', occupation: 'Civil Engineer', isHead: true, isVoter: true, isPwd: false, isSenior: false },
+            { id: '2', fullName: 'Maria Clara Santos', age: 67, gender: 'Female', purok: 'Purok 2', address: '45 Mayon Ave.', civilStatus: 'Widowed', occupation: 'Retired Teacher', isHead: true, isVoter: true, isPwd: false, isSenior: true },
+            { id: '3', fullName: 'Pedro Penduko', age: 22, gender: 'Male', purok: 'Purok 3', address: '78 Mabini St.', civilStatus: 'Single', occupation: 'Student / Freelancer', isHead: false, isVoter: true, isPwd: false, isSenior: false },
+            { id: '4', fullName: 'Ana Maria Rizal', age: 45, gender: 'Female', purok: 'Purok 1', address: '12 Sampaguita St.', civilStatus: 'Married', occupation: 'Store Owner', isHead: false, isVoter: true, isPwd: true, isSenior: false },
+            { id: '5', fullName: 'Jose Protacio', age: 72, gender: 'Male', purok: 'Purok 4', address: '88 Rizal Extension', civilStatus: 'Married', occupation: 'Retired', isHead: true, isVoter: true, isPwd: false, isSenior: true }
+        ];
+
+        const initialRequests = [
+            { id: 'BSJ-2026-101', fullName: 'Juan De La Cruz', docType: 'Barangay Clearance', purpose: 'Job Application', contact: '09171234567', dateNeeded: '2026-10-15', dateRequested: '2026-10-10', address: 'Purok 1, 123 Sampaguita St.', status: 'Ready for Pickup' },
+            { id: 'BSJ-2026-102', fullName: 'Pedro Penduko', docType: 'First Time Job Seeker Certificate', purpose: 'First Job Application', contact: '09189876543', dateNeeded: '2026-10-18', dateRequested: '2026-10-11', address: 'Purok 3, 78 Mabini St.', status: 'Pending' },
+            { id: 'BSJ-2026-103', fullName: 'Maria Clara Santos', docType: 'Certificate of Indigency', purpose: 'Medical Assistance', contact: '09223334444', dateNeeded: '2026-10-14', dateRequested: '2026-10-09', address: 'Purok 2, 45 Mayon Ave.', status: 'Approved' }
+        ];
+
+        // Load data from LocalStorage or initialize
+        let censusData = JSON.parse(localStorage.getItem('bsj_census_data')) || initialCensus;
+        let requestData = JSON.parse(localStorage.getItem('bsj_request_data')) || initialRequests;
+
+        let ageChartInstance = null;
+        let genderChartInstance = null;
+
+        // Save data to LocalStorage
+        function saveData() {
+            localStorage.setItem('bsj_census_data', JSON.stringify(censusData));
+            localStorage.setItem('bsj_request_data', JSON.stringify(requestData));
+        }
+
+        // ==========================================
+        // NAVIGATION & VIEW SWITCHING
+        // ==========================================
+        function switchView(view) {
+            const residentView = document.getElementById('residentView');
+            const adminView = document.getElementById('adminView');
+            const roleBadge = document.getElementById('roleBadge');
+            const navResident = document.getElementById('nav-resident');
+            const navAdmin = document.getElementById('nav-admin');
+
+            if (view === 'resident') {
+                residentView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                roleBadge.textContent = 'Resident View';
+                roleBadge.className = 'text-xs font-semibold text-emerald-400';
+                navResident.className = 'nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-phGold border-b-2 border-phGold';
+                navAdmin.className = 'nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-slate-300';
+                renderResidentRequests();
+            } else {
+                residentView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                roleBadge.textContent = 'Admin View';
+                roleBadge.className = 'text-xs font-semibold text-phGold';
+                navAdmin.className = 'nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-phGold border-b-2 border-phGold';
+                navResident.className = 'nav-btn font-medium hover:text-phGold transition px-3 py-2 rounded-md text-slate-300';
+                refreshAdminDashboard();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function switchAdminTab(tab) {
+            const censusTab = document.getElementById('adminTabCensus');
+            const requestsTab = document.getElementById('adminTabRequests');
+            const analyticsTab = document.getElementById('adminTabAnalytics');
+
+            const btnCensus = document.getElementById('tab-census');
+            const btnRequests = document.getElementById('tab-requests');
+            const btnAnalytics = document.getElementById('tab-analytics');
+
+            censusTab.classList.add('hidden');
+            requestsTab.classList.add('hidden');
+            analyticsTab.classList.add('hidden');
+
+            btnCensus.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
+            btnRequests.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
+            btnAnalytics.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
+
+            if (tab === 'census') {
+                censusTab.classList.remove('hidden');
+                btnCensus.className = 'pb-3 border-b-2 border-phGreen-700 text-phGreen-700 flex items-center space-x-2';
+            } else if (tab === 'requests') {
+                requestsTab.classList.remove('hidden');
+                btnRequests.className = 'pb-3 border-b-2 border-phGreen-700 text-phGreen-700 flex items-center space-x-2';
+                renderAdminRequests();
+            } else if (tab === 'analytics') {
+                analyticsTab.classList.remove('hidden');
+                btnAnalytics.className = 'pb-3 border-b-2 border-phGreen-700 text-phGreen-700 flex items-center space-x-2';
+                renderAnalyticsCharts();
+            }
+        }
+
+        // ==========================================
+        // RESIDENT PORTAL LOGIC
+        // ==========================================
+        function updateFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files && input.files[0]) {
+                display.textContent = `Attached: ${input.files[0].name}`;
+                display.className = "text-xs font-bold text-phGreen-700";
+            }
+        }
+
+        function handleDocRequestSubmit(e) {
+            e.preventDefault();
+            const docType = document.getElementById('reqDocType').value;
+            const fullName = document.getElementById('reqFullName').value;
+            const contact = document.getElementById('reqContact').value;
+            const dateNeeded = document.getElementById('reqDateNeeded').value;
+            const address = document.getElementById('reqAddress').value;
+            const purpose = document.getElementById('reqPurpose').value;
+
+            const newId = 'BSJ-2026-' + Math.floor(100 + Math.random() * 900);
+            const today = new Date().toISOString().split('T')[0];
+
+            const newReq = {
+                id: newId,
+                fullName,
+                docType,
+                purpose,
+                contact,
+                dateNeeded,
+                dateRequested: today,
+                address,
+                status: 'Pending'
+            };
+
+            requestData.unshift(newReq);
+            saveData();
+            renderResidentRequests();
+
+            // Reset Form & Feedback
+            document.getElementById('docRequestForm').reset();
+            document.getElementById('fileNameDisplay').textContent = "Click or drag photo of Driver's License, UMID, Passport, etc.";
+            document.getElementById('fileNameDisplay').className = "text-xs text-slate-600";
+
+            alert(`Request Submitted Successfully!\nTracking Reference Code: ${newId}`);
+            scrollToSection('trackSection');
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'Pending':
+                    return `<span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-hourglass-start mr-1"></i> Pending</span>`;
+                case 'Processing':
+                    return `<span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-gear fa-spin mr-1"></i> Processing</span>`;
+                case 'Ready for Pickup':
+                    return `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-box-archive mr-1"></i> Ready for Pickup</span>`;
+                case 'Approved':
+                    return `<span class="bg-phGreen-100 text-phGreen-800 text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
+                case 'Rejected':
+                    return `<span class="bg-red-100 text-red-800 text-[11px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
+                default:
+                    return `<span class="bg-slate-100 text-slate-800 text-[11px] font-bold px-2.5 py-1 rounded-full">${status}</span>`;
+            }
+        }
+
+        function renderResidentRequests() {
+            const tbody = document.getElementById('residentRequestTable');
+            tbody.innerHTML = '';
+
+            if (requestData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No active document requests found.</td></tr>`;
+                return;
+            }
+
+            requestData.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+
+                const canPrint = req.status === 'Approved' || req.status === 'Ready for Pickup';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-mono font-bold text-xs text-slate-700">${req.id}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900">${req.fullName}</td>
+                    <td class="py-3.5 px-4 text-slate-600">${req.docType}</td>
+                    <td class="py-3.5 px-4 text-slate-500 text-xs">${req.dateRequested}</td>
+                    <td class="py-3.5 px-4">${getStatusBadge(req.status)}</td>
+                    <td class="py-3.5 px-4 text-center">
+                        ${canPrint ? `
+                            <button onclick="openPrintModal('${req.id}')" class="bg-phGreen-700 hover:bg-phGreen-800 text-white font-bold text-xs px-3 py-1.5 rounded transition inline-flex items-center space-x-1">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>Preview / Print</span>
+                            </button>
+                        ` : `
+                            <span class="text-xs text-slate-400 italic">In Review</span>
+                        `}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // ADMIN CENSUS CRUD & MANAGEMENT LOGIC
+        // ==========================================
+        function refreshAdminDashboard() {
+            renderCensusTable();
+            updateDashboardStats();
+            renderAdminRequests();
+        }
+
+        function updateDashboardStats() {
+            const totalPop = censusData.length;
+            const households = censusData.filter(c => c.isHead).length;
+            const seniors = censusData.filter(c => c.isSenior || c.age >= 60).length;
+            const voters = censusData.filter(c => c.isVoter).length;
+            const activeReqs = requestData.filter(r => r.status === 'Pending' || r.status === 'Processing').length;
+
+            document.getElementById('statTotalPop').textContent = totalPop;
+            document.getElementById('statTotalHouseholds').textContent = households;
+            document.getElementById('statSeniors').textContent = seniors;
+            document.getElementById('statVoters').textContent = voters;
+            document.getElementById('statActiveRequests').textContent = activeReqs;
+        }
+
+        function renderCensusTable(filteredList = null) {
+            const tbody = document.getElementById('censusTableBody');
+            tbody.innerHTML = '';
+
+            const list = filteredList || censusData;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No resident records matched criteria.</td></tr>`;
+                return;
+            }
+
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+                const tags = [];
+                if (item.isHead) tags.push(`<span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Head</span>`);
+                if (item.isVoter) tags.push(`<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Voter</span>`);
+                if (item.isSenior || item.age >= 60) tags.push(`<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Senior</span>`);
+                if (item.isPwd) tags.push(`<span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-[10px] font-bold">PWD</span>`);
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-900">${item.fullName}</td>
+                    <td class="py-3 px-4 text-slate-600">${item.age} y/o • ${item.gender}</td>
+                    <td class="py-3 px-4 text-slate-600"><span class="font-semibold text-slate-800">${item.purok}</span><br><span class="text-[11px] text-slate-400">${item.address}</span></td>
+                    <td class="py-3 px-4 text-slate-600">${item.civilStatus} • <span class="italic">${item.occupation || 'N/A'}</span></td>
+                    <td class="py-3 px-4"><div class="flex flex-wrap gap-1">${tags.join('') || '<span class="text-slate-400 text-[10px]">None</span>'}</div></td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button onclick="editCensusRecord('${item.id}')" class="text-blue-600 hover:text-blue-800 font-semibold text-xs p-1">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteCensusRecord('${item.id}')" class="text-red-600 hover:text-red-800 font-semibold text-xs p-1">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterCensusData() {
+            const query = document.getElementById('censusSearchInput').value.toLowerCase();
+            const purok = document.getElementById('purokFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = censusData.filter(item => {
+                const matchesSearch = item.fullName.toLowerCase().includes(query) || item.address.toLowerCase().includes(query);
+                const matchesPurok = (purok === 'ALL') || (item.purok === purok);
+                
+                let matchesStatus = true;
+                if (status === 'Senior') matchesStatus = item.isSenior || item.age >= 60;
+                if (status === 'PWD') matchesStatus = item.isPwd;
+                if (status === 'Voter') matchesStatus = item.isVoter;
+
+                return matchesSearch && matchesPurok && matchesStatus;
+            });
+
+            renderCensusTable(filtered);
+        }
+
+        function openCensusModal(editId = null) {
+            const modal = document.getElementById('censusModal');
+            const form = document.getElementById('censusForm');
+            const title = document.getElementById('modalTitle');
+
+            form.reset();
+            document.getElementById('censusId').value = '';
+
+            if (editId) {
+                const record = censusData.find(c => c.id === editId);
+                if (record) {
+                    title.textContent = "Edit Resident Census Record";
+                    document.getElementById('censusId').value = record.id;
+                    document.getElementById('cenFullName').value = record.fullName;
+                    document.getElementById('cenPurok').value = record.purok;
+                    document.getElementById('cenAge').value = record.age;
+                    document.getElementById('cenGender').value = record.gender;
+                    document.getElementById('cenCivilStatus').value = record.civilStatus;
+                    document.getElementById('cenOccupation').value = record.occupation;
+                    document.getElementById('cenAddress').value = record.address;
+                    document.getElementById('cenIsHead').checked = record.isHead;
+                    document.getElementById('cenIsVoter').checked = record.isVoter;
+                    document.getElementById('cenIsPwd').checked = record.isPwd;
+                    document.getElementById('cenIsSenior').checked = record.isSenior;
+                }
+            } else {
+                title.textContent = "Add Resident Census Record";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeCensusModal() {
+            document.getElementById('censusModal').classList.add('hidden');
+        }
+
+        function saveCensusRecord(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('censusId').value;
+            const fullName = document.getElementById('cenFullName').value;
+            const purok = document.getElementById('cenPurok').value;
+            const age = parseInt(document.getElementById('cenAge').value);
+            const gender = document.getElementById('cenGender').value;
+            const civilStatus = document.getElementById('cenCivilStatus').value;
+            const occupation = document.getElementById('cenOccupation').value;
+            const address = document.getElementById('cenAddress').value;
+            const isHead = document.getElementById('cenIsHead').checked;
+            const isVoter = document.getElementById('cenIsVoter').checked;
+            const isPwd = document.getElementById('cenIsPwd').checked;
+            const isSenior = document.getElementById('cenIsSenior').checked || age >= 60;
+
+            if (id) {
+                // Update
+                const index = censusData.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    censusData[index] = { id, fullName, purok, age, gender, civilStatus, occupation, address, isHead, isVoter, isPwd, isSenior };
+                }
+            } else {
+                // Create
+                const newRecord = {
+                    id: Date.now().toString(),
+                    fullName, purok, age, gender, civilStatus, occupation, address, isHead, isVoter, isPwd, isSenior
+                };
+                censusData.unshift(newRecord);
+            }
+
+            saveData();
+            closeCensusModal();
+            refreshAdminDashboard();
+        }
+
+        function editCensusRecord(id) {
+            openCensusModal(id);
+        }
+
+        function deleteCensusRecord(id) {
+            if (confirm("Are you sure you want to delete this resident's census record?")) {
+                censusData = censusData.filter(c => c.id !== id);
+                saveData();
+                refreshAdminDashboard();
+            }
+        }
+
+        // ==========================================
+        // ADMIN REQUEST MANAGEMENT LOGIC
+        // ==========================================
+        function renderAdminRequests() {
+            const tbody = document.getElementById('adminRequestTable');
+            tbody.innerHTML = '';
+
+            if (requestData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No document applications.</td></tr>`;
+                return;
+            }
+
+            requestData.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-xs text-slate-700">${req.id}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900">${req.fullName}<br><span class="text-[11px] font-normal text-slate-500">${req.address}</span></td>
+                    <td class="py-3 px-4 text-slate-700 font-medium">${req.docType}<br><span class="text-[11px] text-slate-400">Purpose: ${req.purpose}</span></td>
+                    <td class="py-3 px-4 text-slate-600 text-xs">${req.dateRequested}<br><span class="text-[11px] text-slate-400">${req.contact}</span></td>
+                    <td class="py-3 px-4">${getStatusBadge(req.status)}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-1">
+                            <select onchange="updateRequestStatus('${req.id}', this.value)" class="bg-slate-50 border border-slate-300 rounded text-xs px-2 py-1 focus:outline-none">
+                                <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Processing" ${req.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Ready for Pickup" ${req.status === 'Ready for Pickup' ? 'selected' : ''}>Ready for Pickup</option>
+                                <option value="Approved" ${req.status === 'Approved' ? 'selected' : ''}>Approved</option>
+                                <option value="Rejected" ${req.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                            </select>
+                            <button onclick="openPrintModal('${req.id}')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-2.5 py-1 rounded shadow" title="Print Official Document">
+                                <i class="fa-solid fa-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateRequestStatus(id, newStatus) {
+            const req = requestData.find(r => r.id === id);
+            if (req) {
+                req.status = newStatus;
+                saveData();
+                renderAdminRequests();
+                updateDashboardStats();
+            }
+        }
+
+        // ==========================================
+        // CERTIFICATE PRINT MODAL LOGIC
+        // ==========================================
+        function openPrintModal(reqId) {
+            const req = requestData.find(r => r.id === reqId);
+            if (!req) return;
+
+            document.getElementById('certDocTitle').textContent = req.docType.toUpperCase();
+            document.getElementById('certApplicantName').textContent = req.fullName;
+            document.getElementById('certAddress').textContent = req.address;
+            document.getElementById('certPurpose').textContent = req.purpose.toUpperCase();
+            document.getElementById('certRefNo').textContent = `REF: ${req.id}`;
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('certIssuedDate').textContent = new Date().toLocaleDateString('en-US', options);
+
+            document.getElementById('printCertificateModal').classList.remove('hidden');
+        }
+
+        function closePrintModal() {
+            document.getElementById('printCertificateModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // CHART.JS DEMOGRAPHIC ANALYTICS LOGIC
+        // ==========================================
+        function renderAnalyticsCharts() {
+            // Age Distribution Calculation
+            const age0_17 = censusData.filter(c => c.age < 18).length;
+            const age18_35 = censusData.filter(c => c.age >= 18 && c.age <= 35).length;
+            const age36_59 = censusData.filter(c => c.age >= 36 && c.age <= 59).length;
+            const age60Plus = censusData.filter(c => c.age >= 60).length;
+
+            if (ageChartInstance) ageChartInstance.destroy();
+            const ctxAge = document.getElementById('ageChart').getContext('2d');
+            ageChartInstance = new Chart(ctxAge, {
+                type: 'bar',
+                data: {
+                    labels: ['0-17 (Youth)', '18-35 (Adult)', '36-59 (Middle)', '60+ (Senior)'],
+                    datasets: [{
+                        label: 'Population Count',
+                        data: [age0_17, age18_35, age36_59, age60Plus],
+                        backgroundColor: ['#60a5fa', '#34d399', '#f39c12', '#f87171'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Gender Split Calculation
+            const males = censusData.filter(c => c.gender === 'Male').length;
+            const females = censusData.filter(c => c.gender === 'Female').length;
+
+            if (genderChartInstance) genderChartInstance.destroy();
+            const ctxGender = document.getElementById('genderChart').getContext('2d');
+            genderChartInstance = new Chart(ctxGender, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male', 'Female'],
+                    datasets: [{
+                        data: [males, females],
+                        backgroundColor: ['#2563eb', '#ec4899']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Purok Household Concentration Progress Bars
+            const puroks = ['Purok 1', 'Purok 2', 'Purok 3', 'Purok 4', 'Purok 5'];
+            const container = document.getElementById('purokProgressContainer');
+            container.innerHTML = '';
+
+            puroks.forEach(p => {
+                const count = censusData.filter(c => c.purok === p).length;
+                const percentage = censusData.length > 0 ? Math.round((count / censusData.length) * 100) : 0;
+
+                const bar = document.createElement('div');
+                bar.className = 'space-y-1';
+                bar.innerHTML = `
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-700">${p}</span>
+                        <span class="text-slate-500">${count} residents (${percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-phGreen-700 h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        // ==========================================
+        // WINDOW INITIALIZATION
+        // ==========================================
+        window.onload = function() {
+            renderResidentRequests();
+        };
+    </script>
+</body>
+</html>
